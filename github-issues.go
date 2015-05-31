@@ -28,13 +28,13 @@ func main() {
 			fail("Must be token settings to .gitconfig")
 		}
 
-		issues, err := githubIssues(token)
+		issues, _, err := githubIssues(token)
 		if err != nil {
 			fail("Failed get issues")
 		}
 
 		for _, issue := range issues {
-			fmt.Println(issue)
+			fmt.Printf("%d\t%s\t%s\t%s\n", *issue.Number, *issue.HTMLURL, *issue.Title, *issue.User.Login)
 		}
 	}
 	app.Run(os.Args)
