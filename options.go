@@ -15,6 +15,8 @@ const (
 	// PerPageDefault is default value of the `per_page` parameter
 	// Maximum value on the specifications of GitHub API
 	PerPageDefault = 100
+	// FormatDefault is default value of display format
+	FormatDefault = "%n\t%l\t%t\t%u"
 )
 
 // Options API Request
@@ -22,6 +24,7 @@ type Options struct {
 	page    int
 	perPage int
 	token   string
+	format  string
 }
 
 func newOptions(c *cli.Context) *Options {
@@ -32,6 +35,7 @@ func newOptions(c *cli.Context) *Options {
 
 	page := PageDefault
 	perPage := PerPageDefault
+	format := FormatDefault
 
 	if c.Int("page") != 0 {
 		page = c.Int("page")
@@ -41,10 +45,15 @@ func newOptions(c *cli.Context) *Options {
 		perPage = c.Int("per-page")
 	}
 
+	if c.String("format") != "" {
+		format = c.String("format")
+	}
+
 	return &Options{
 		page:    page,
 		perPage: perPage,
 		token:   token,
+		format:  format,
 	}
 }
 

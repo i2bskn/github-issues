@@ -22,16 +22,22 @@ func main() {
 			Name:  "per-page, n",
 			Usage: "Specific pages",
 		},
+		cli.StringFlag{
+			Name:  "format, f",
+			Usage: "Display format",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		options := newOptions(c)
+		format := newFormat(options.format)
+
 		issues, _, err := githubIssues(options)
 		if err != nil {
 			fail("Failed get issues")
 		}
 
 		for _, issue := range issues {
-			fmt.Printf("%d\t%s\t%s\t%s\n", *issue.Number, *issue.HTMLURL, *issue.Title, *issue.User.Login)
+			fmt.Println(format.Apply(issue))
 		}
 	}
 	app.Run(os.Args)
