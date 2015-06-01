@@ -1,17 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"os"
-	"os/exec"
-	"strings"
-)
-
-const (
-	// PersonalAccessTokenKey in .gitconfig
-	PersonalAccessTokenKey = "github.token"
 )
 
 func main() {
@@ -21,14 +13,19 @@ func main() {
 	app.Usage = "List of GitHub issues"
 	app.Author = "i2bskn"
 	app.Email = "i2bskn@gmail.com"
-	app.Flags = []cli.Flag{}
+	app.Flags = []cli.Flag{
+		cli.IntFlag{
+			Name:  "page, p",
+			Usage: "Specific pages",
+		},
+		cli.IntFlag{
+			Name:  "per-page, n",
+			Usage: "Specific pages",
+		},
+	}
 	app.Action = func(c *cli.Context) {
-		token, err := getGitConfig(PersonalAccessTokenKey)
-		if err != nil {
-			fail("Must be token settings to .gitconfig")
-		}
-
-		issues, _, err := githubIssues(token)
+		options := newOptions(c)
+		issues, _, err := githubIssues(options)
 		if err != nil {
 			fail("Failed get issues")
 		}
@@ -38,16 +35,6 @@ func main() {
 		}
 	}
 	app.Run(os.Args)
-}
-
-func getGitConfig(key string) (out string, err error) {
-	cmd := exec.Command("git", "config", key)
-	var result bytes.Buffer
-	cmd.Stdout = &result
-
-	err = cmd.Run()
-	out = strings.TrimSpace(result.String())
-	return
 }
 
 func fail(message string) {

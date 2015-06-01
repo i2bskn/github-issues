@@ -13,22 +13,22 @@ func (t *tokenSource) Token() (*oauth2.Token, error) {
 	return t.token, nil
 }
 
-func githubIssues(token string) (issues []github.Issue, res *github.Response, err error) {
+func githubIssues(options *Options) (issues []github.Issue, res *github.Response, err error) {
 	ts := &tokenSource{
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: options.token},
 	}
 
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
-	options := &github.IssueListOptions{
+	issueListOptions := &github.IssueListOptions{
 		Filter: "all",
 		State:  "open",
-		Sort:   "updated",
+		Sort:   "comments",
 		ListOptions: github.ListOptions{
-			Page:    1,
-			PerPage: 100,
+			Page:    options.page,
+			PerPage: options.perPage,
 		},
 	}
-	issues, res, err = client.Issues.List(true, options)
+	issues, res, err = client.Issues.List(true, issueListOptions)
 	return
 }
