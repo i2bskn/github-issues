@@ -29,15 +29,13 @@ func main() {
 	}
 	app.Action = func(c *cli.Context) {
 		options := newOptions(c)
-		format := newFormat(options.format)
-
 		issues, _, err := githubIssues(options)
 		if err != nil {
 			fail("Failed get issues")
 		}
 
 		for _, issue := range issues {
-			fmt.Println(format.Apply(issue))
+			fmt.Println(options.format.Apply(issue))
 		}
 	}
 	app.Run(os.Args)

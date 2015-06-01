@@ -24,7 +24,7 @@ type Options struct {
 	page    int
 	perPage int
 	token   string
-	format  string
+	format  *Format
 }
 
 func newOptions(c *cli.Context) *Options {
@@ -53,7 +53,7 @@ func newOptions(c *cli.Context) *Options {
 		page:    page,
 		perPage: perPage,
 		token:   token,
-		format:  format,
+		format:  newFormat(format),
 	}
 }
 
