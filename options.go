@@ -10,11 +10,18 @@ import (
 const (
 	// PersonalAccessTokenKey in .gitconfig
 	PersonalAccessTokenKey = "github.token"
+
 	// PageDefault is default value of the `page` parameter
 	PageDefault = 1
 	// PerPageDefault is default value of the `per_page` parameter
 	// Maximum value on the specifications of GitHub API
 	PerPageDefault = 100
+	// FilterDefault is default value of the `filter` parameter
+	FilterDefault = "all"
+	// StateDefault is default value of the `state` parameter
+	StateDefault = "open"
+	// SortDefault is default value of the `sort` parameter
+	SortDefault = "updated"
 	// FormatDefault is default value of display format
 	FormatDefault = "%n\t%l\t%t\t%u"
 )
@@ -23,6 +30,9 @@ const (
 type Options struct {
 	page    int
 	perPage int
+	filter  string
+	state   string
+	sort    string
 	token   string
 	format  *Format
 }
@@ -30,18 +40,21 @@ type Options struct {
 func newOptions(c *cli.Context) *Options {
 	token, err := getGitConfig(PersonalAccessTokenKey)
 	if err != nil {
-		fail("Must be token settings to .gitconfig")
+		fail("Need to set a personal access token to " + PersonalAccessTokenKey + " in gitconfig.")
 	}
 
 	page := PageDefault
 	perPage := PerPageDefault
+	filter := FilterDefault
+	state := StateDefault
+	sort := SortDefault
 	format := FormatDefault
 
-	if c.Int("page") != 0 {
+	if c.Int("page") > 0 {
 		page = c.Int("page")
 	}
 
-	if c.Int("per-page") != 0 {
+	if c.Int("per-page") > 0 {
 		perPage = c.Int("per-page")
 	}
 
@@ -52,6 +65,9 @@ func newOptions(c *cli.Context) *Options {
 	return &Options{
 		page:    page,
 		perPage: perPage,
+		filter:  filter,
+		state:   state,
+		sort:    sort,
 		token:   token,
 		format:  newFormat(format),
 	}

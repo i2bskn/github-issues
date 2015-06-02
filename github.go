@@ -21,9 +21,9 @@ func githubIssues(options *Options) (issues []github.Issue, res *github.Response
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
 	issueListOptions := &github.IssueListOptions{
-		Filter: "all",
-		State:  "open",
-		Sort:   "comments",
+		Filter: options.filter,
+		State:  options.state,
+		Sort:   options.sort,
 		ListOptions: github.ListOptions{
 			Page:    options.page,
 			PerPage: options.perPage,
