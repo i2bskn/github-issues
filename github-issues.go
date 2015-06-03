@@ -16,15 +16,35 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "page, p",
-			Usage: "Specific pages",
+			Usage: "Specify further pages.(default: 1)",
 		},
 		cli.IntFlag{
 			Name:  "per-page, n",
-			Usage: "Specific pages",
+			Usage: "Specify a custom page size.(default: 100)",
+		},
+		cli.BoolFlag{
+			Name:  "assigned, a",
+			Usage: "Issues assigned to you.(default: all)",
+		},
+		cli.BoolFlag{
+			Name:  "created, c",
+			Usage: "Issues created by you.(default: all)",
+		},
+		cli.BoolFlag{
+			Name:  "mentioned, m",
+			Usage: "Issues mentioning you.(default: all)",
+		},
+		cli.BoolFlag{
+			Name:  "closed",
+			Usage: "Closed issue only.(default: open)",
+		},
+		cli.BoolFlag{
+			Name:  "all",
+			Usage: "With closed issue.(default: open)",
 		},
 		cli.StringFlag{
 			Name:  "format, f",
-			Usage: "Display format",
+			Usage: "Specify display format.",
 		},
 	}
 	app.Action = func(c *cli.Context) {

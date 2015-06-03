@@ -45,8 +45,8 @@ func newOptions(c *cli.Context) *Options {
 
 	page := PageDefault
 	perPage := PerPageDefault
-	filter := FilterDefault
-	state := StateDefault
+	filter := parseFilter(c)
+	state := parseState(c)
 	sort := SortDefault
 	format := FormatDefault
 
@@ -70,6 +70,30 @@ func newOptions(c *cli.Context) *Options {
 		sort:    sort,
 		token:   token,
 		format:  newFormat(format),
+	}
+}
+
+func parseFilter(c *cli.Context) string {
+	switch {
+	case c.Bool("assigned"):
+		return "assigned"
+	case c.Bool("created"):
+		return "created"
+	case c.Bool("mentioned"):
+		return "mentioned"
+	default:
+		return FilterDefault
+	}
+}
+
+func parseState(c *cli.Context) string {
+	switch {
+	case c.Bool("closed"):
+		return "closed"
+	case c.Bool("all"):
+		return "all"
+	default:
+		return StateDefault
 	}
 }
 
