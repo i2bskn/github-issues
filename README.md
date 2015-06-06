@@ -1,12 +1,17 @@
 github-issues
 =============
 
+[![GitHub release](https://img.shields.io/github/release/i2bskn/github-issues.svg?style=flat-square)](https://github.com/i2bskn/github-issues/releases)
+[![GitHub license](https://img.shields.io/github/license/i2bskn/github-issues.svg?style=flat-square)](https://github.com/i2bskn/github-issues/blob/master/LICENSE.txt)
+
 List of GitHub issues. (by all repository)
 
 Installation
 ------------
 
-With go lang:
+Download from [releases](https://github.com/i2bskn/github-issues/releases) and stored in the `$PATH`.  
+
+Or with golang:
 
 ```
 go get github.com/i2bskn/github-issues
