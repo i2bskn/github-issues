@@ -9,21 +9,7 @@ import (
 
 const (
 	// PersonalAccessTokenKey in .gitconfig
-	PersonalAccessTokenKey = "github.token"
-
-	// PageDefault is default value of the `page` parameter
-	PageDefault = 1
-	// PerPageDefault is default value of the `per_page` parameter
-	// Maximum value on the specifications of GitHub API
-	PerPageDefault = 100
-	// FilterDefault is default value of the `filter` parameter
-	FilterDefault = "all"
-	// StateDefault is default value of the `state` parameter
-	StateDefault = "open"
-	// SortDefault is default value of the `sort` parameter
-	SortDefault = "updated"
-	// FormatDefault is default value of display format
-	FormatDefault = "%n\t%l\t%t\t%u"
+	personalAccessTokenKey = "github.token"
 )
 
 // Options API Request
@@ -38,38 +24,29 @@ type Options struct {
 }
 
 func newOptions(c *cli.Context) *Options {
-	token, err := getGitConfig(PersonalAccessTokenKey)
+	token, err := getGitConfig(personalAccessTokenKey)
 	if err != nil {
-		fail("Need to set a personal access token to " + PersonalAccessTokenKey + " in gitconfig.")
+		fail(err.Error())
 	}
 
-	page := PageDefault
-	perPage := PerPageDefault
-	filter := parseFilter(c)
-	state := parseState(c)
-	sort := SortDefault
-	format := FormatDefault
-
-	if c.Int("page") > 0 {
-		page = c.Int("page")
+	state, err := validState(c.String("state"))
+	if err != nil {
+		fail(err.Error())
 	}
 
-	if c.Int("per-page") > 0 {
-		perPage = c.Int("per-page")
-	}
-
-	if c.String("format") != "" {
-		format = c.String("format")
+	sort, err := validSort(c.String("sort"))
+	if err != nil {
+		fail(err.Error())
 	}
 
 	return &Options{
-		page:    page,
-		perPage: perPage,
-		filter:  filter,
+		page:    c.Int("page"),
+		perPage: c.Int("per-page"),
+		filter:  parseFilter(c),
 		state:   state,
 		sort:    sort,
 		token:   token,
-		format:  newFormat(format),
+		format:  newFormat(c.String("format")),
 	}
 }
 
@@ -82,19 +59,36 @@ func parseFilter(c *cli.Context) string {
 	case c.Bool("mentioned"):
 		return "mentioned"
 	default:
-		return FilterDefault
+		return "all"
 	}
 }
 
-func parseState(c *cli.Context) string {
-	switch {
-	case c.Bool("closed"):
-		return "closed"
-	case c.Bool("all"):
-		return "all"
-	default:
-		return StateDefault
+func validState(state string) (valid_state string, err error) {
+	invalid := true
+	for _, s := range [...]string{"open", "closed", "all"} {
+		if state == s {
+			valid_state = state
+			invalid = false
+		}
 	}
+	if invalid {
+		err = newError("Invalid state: " + state)
+	}
+	return
+}
+
+func validSort(sort string) (valid_sort string, err error) {
+	invalid := true
+	for _, s := range [...]string{"created", "updated", "comments"} {
+		if sort == s {
+			valid_sort = sort
+			invalid = false
+		}
+	}
+	if invalid {
+		err = newError("Invalid sort: " + sort)
+	}
+	return
 }
 
 func getGitConfig(key string) (out string, err error) {

@@ -16,42 +16,48 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "page, p",
-			Usage: "Specify further pages.(default: 1)",
+			Value: 1,
+			Usage: "Specify further pages.",
 		},
 		cli.IntFlag{
-			Name:  "per-page, n",
-			Usage: "Specify a custom page size.(default: 100)",
+			Name: "per-page, n",
+			// Maximum value on the specifications of GitHub API
+			Value: 100,
+			Usage: "Specify a custom page size.",
 		},
 		cli.BoolFlag{
 			Name:  "assigned, a",
-			Usage: "Issues assigned to you.(default: all)",
+			Usage: "Issues assigned to you.",
 		},
 		cli.BoolFlag{
 			Name:  "created, c",
-			Usage: "Issues created by you.(default: all)",
+			Usage: "Issues created by you.",
 		},
 		cli.BoolFlag{
 			Name:  "mentioned, m",
-			Usage: "Issues mentioning you.(default: all)",
+			Usage: "Issues mentioning you.",
 		},
-		cli.BoolFlag{
-			Name:  "closed",
-			Usage: "Closed issue only.(default: open)",
+		cli.StringFlag{
+			Name:  "state, s",
+			Value: "open",
+			Usage: "Specify the state of the issues to display. Can be either open, closed, all.",
 		},
-		cli.BoolFlag{
-			Name:  "all",
-			Usage: "With closed issue.(default: open)",
+		cli.StringFlag{
+			Name:  "sort",
+			Value: "updated",
+			Usage: "What to sort issues by. Can be either created, updated, comments.",
 		},
 		cli.StringFlag{
 			Name:  "format, f",
-			Usage: "Specify display format.",
+			Value: "%n\t%l\t%t\t%u",
+			Usage: "Specify the format of the issues to display. The combination of symbols indicating the item.",
 		},
 	}
 	app.Action = func(c *cli.Context) {
 		options := newOptions(c)
 		issues, _, err := githubIssues(options)
 		if err != nil {
-			fail("Failed get issues")
+			fail(err.Error())
 		}
 
 		for _, issue := range issues {
@@ -59,9 +65,4 @@ func main() {
 		}
 	}
 	app.Run(os.Args)
-}
-
-func fail(message string) {
-	fmt.Println(message)
-	os.Exit(1)
 }
