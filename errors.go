@@ -9,8 +9,8 @@ type GithubIssuesError struct {
 	message string
 }
 
-func newError(message string) GithubIssuesError {
-	return GithubIssuesError{
+func newError(message string) *GithubIssuesError {
+	return &GithubIssuesError{
 		message: message,
 	}
 }

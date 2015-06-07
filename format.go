@@ -12,7 +12,7 @@ type Format struct {
 
 func newFormat(base string) *Format {
 	return &Format{
-		base: base,
+		base: strings.Replace(base, "\\t", "\t", -1),
 	}
 }
 

@@ -24,9 +24,13 @@ type Options struct {
 }
 
 func newOptions(c *cli.Context) *Options {
-	token, err := getGitConfig(personalAccessTokenKey)
-	if err != nil {
-		fail(err.Error())
+	token := c.String("token")
+	if len(c.String("token")) < 1 {
+		token_in_gitconfig, err := getGitConfig(personalAccessTokenKey)
+		if err != nil {
+			fail("Need to set a personal access token to " + personalAccessTokenKey + " in gitconfig.")
+		}
+		token = token_in_gitconfig
 	}
 
 	state, err := validState(c.String("state"))

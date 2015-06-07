@@ -49,11 +49,23 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "format, f",
-			Value: "%n\t%l\t%t\t%u",
-			Usage: "Specify the format of the issues to display. The combination of symbols indicating the item.",
+			Value: "%n\\t%l\\t%t\\t%u",
+			Usage: "Specify the format of the issues to display.",
+		},
+		cli.StringFlag{
+			Name:  "token",
+			Usage: "Specify the personal access token of GitHub.",
 		},
 	}
 	app.Action = func(c *cli.Context) {
+		if c.Bool("version") {
+			printVersion(c)
+		}
+
+		if c.Bool("help") {
+			printHelp(c)
+		}
+
 		options := newOptions(c)
 		issues, _, err := githubIssues(options)
 		if err != nil {
@@ -65,4 +77,14 @@ func main() {
 		}
 	}
 	app.Run(os.Args)
+}
+
+func printVersion(c *cli.Context) {
+	fmt.Println(c.App.Name + " " + c.App.Version)
+	os.Exit(0)
+}
+
+func printHelp(c *cli.Context) {
+	cli.ShowAppHelp(c)
+	os.Exit(0)
 }
