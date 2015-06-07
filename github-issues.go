@@ -9,7 +9,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "github-issues"
-	app.Version = "0.0.1"
+	app.Version = "0.0.2"
 	app.Usage = "List of GitHub issues"
 	app.Author = "i2bskn"
 	app.Email = "i2bskn@gmail.com"
@@ -45,7 +45,7 @@ func main() {
 		cli.StringFlag{
 			Name:  "sort",
 			Value: "updated",
-			Usage: "What to sort issues by. Can be either created, updated, comments.",
+			Usage: "Specify the sort of the issues to display. Can be either created, updated, comments.",
 		},
 		cli.StringFlag{
 			Name:  "format, f",

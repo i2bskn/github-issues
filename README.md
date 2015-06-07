@@ -54,8 +54,16 @@ Options
 |--assigned|-a|none|Issues assigned to you|
 |--created|-c|none|Issues created by you|
 |--mentioned|-m|none|Issues mentioning you|
-|--closed|none|none|Closed issue only|
-|--all|none|none|With closed issue|
+
+### State
+
+Specify the state of the issues to display in `--state`.  
+Can be either `open`, `closed`, `all`.
+
+### Sort
+
+Specify the sort of the issues to display in `--sort`.  
+Can be either `created`, `updated`, `comments`.
 
 ### Format
 
@@ -70,7 +78,12 @@ You can specify the format in `--format` or `-f`.
 
 Default format: `%n\t%l\t%t\t%u`
 
-### Option Example
+### Personal Access Token
+
+Specify the token to be used for access to the github.  
+It is priority than in the `.gitconfig`.
+
+### Option Specified Example
 
 ```
 github-issue -n 5 -a --format="%t"
