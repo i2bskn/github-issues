@@ -15,18 +15,18 @@ func (t *tokenSource) Token() (*oauth2.Token, error) {
 
 func githubIssues(options *Options) ([]github.Issue, *github.Response, error) {
 	ts := &tokenSource{
-		&oauth2.Token{AccessToken: options.token},
+		&oauth2.Token{AccessToken: options.Token()},
 	}
 
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
 	issueListOptions := &github.IssueListOptions{
-		Filter: options.filter,
-		State:  options.state,
-		Sort:   options.sort,
+		Filter: options.Filter(),
+		State:  options.State,
+		Sort:   options.Sort,
 		ListOptions: github.ListOptions{
-			Page:    options.page,
-			PerPage: options.perPage,
+			Page:    options.Page,
+			PerPage: options.PerPage,
 		},
 	}
 	return client.Issues.List(true, issueListOptions)
