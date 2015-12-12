@@ -6,14 +6,13 @@ import (
 	"strings"
 )
 
+// GitHub personal access token
 const (
-	// Personal access token in .gitconfig
 	tokenConfig = "github.token"
-	// Personal access token in environments
-	tokenEnv = "GITHUB_TOKEN"
+	tokenEnv    = "GITHUB_TOKEN"
 )
 
-// GitHub API request common options
+// Options is GitHub API request common options.
 type Options struct {
 	Page      int
 	PerPage   int
@@ -26,10 +25,12 @@ type Options struct {
 	token     string
 }
 
+// NewOptions to generate common options.
 func NewOptions() *Options {
 	return &Options{}
 }
 
+// Filter issues by you operation.
 func (opt *Options) Filter() string {
 	switch {
 	case opt.assigned:
@@ -43,10 +44,12 @@ func (opt *Options) Filter() string {
 	}
 }
 
+// Format to generate format object from specify string.
 func (opt *Options) Format() *Format {
 	return NewFormat(opt.format)
 }
 
+// Token to read token from arguments or environments or gitconfig.
 func (opt *Options) Token() string {
 	// Token from command line options
 	if len(opt.token) > 0 {

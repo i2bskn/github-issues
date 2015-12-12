@@ -6,11 +6,13 @@ import (
 	"strings"
 )
 
+// Application information
 const (
 	AppName = "github-issues"
 	Version = "0.1.0"
 )
 
+// Return code of github-issues command
 const (
 	CodeSuccess = 0
 
@@ -18,24 +20,27 @@ const (
 	CodeAPIRequestFail
 )
 
-const helpText = `Usage: github-issues [OPTIONS]
+const helpHeader = `Usage: github-issues [OPTIONS]
 
 List of GitHub issues.
 
 Options:
 `
 
+// CLI is application object.
 type CLI struct{}
 
+// NewCLI to generate application object.
 func NewCLI() *CLI {
 	return &CLI{}
 }
 
+// Run to execute application from arguments.
 func (cli *CLI) Run(args []string) (int, error) {
 	options := NewOptions()
 	flags := flag.NewFlagSet(AppName, flag.ContinueOnError)
 	flags.Usage = func() {
-		fmt.Println(helpText)
+		fmt.Println(helpHeader)
 		flags.PrintDefaults()
 	}
 
@@ -92,6 +97,7 @@ func (cli *CLI) Run(args []string) (int, error) {
 	return CodeSuccess, nil
 }
 
+// ShowVersion to display the version number.
 func (cli *CLI) ShowVersion() {
 	fmt.Println(strings.Join([]string{AppName, "versin", Version}, " "))
 }
