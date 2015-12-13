@@ -1,106 +1,156 @@
 package main
 
 import (
-	"bytes"
-	"github.com/codegangsta/cli"
+	"errors"
+	"fmt"
+	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
+// GitHub personal access token
 const (
-	// PersonalAccessTokenKey in .gitconfig
-	personalAccessTokenKey = "github.token"
+	tokenConfig = "github.token"
+	tokenEnv    = "GITHUB_TOKEN"
 )
 
-// Options API Request
+// Options is GitHub API request common options.
 type Options struct {
-	page    int
-	perPage int
-	filter  string
-	state   string
-	sort    string
-	token   string
-	format  *Format
+	Page          int
+	PerPage       int
+	State         string
+	Sort          string
+	Self          bool
+	CurrentRepo   bool
+	assigned      bool
+	created       bool
+	mentioned     bool
+	repository    string
+	format        string
+	token         string
+	obtainedToken string
 }
 
-func newOptions(c *cli.Context) *Options {
-	token := c.String("token")
-	if len(c.String("token")) < 1 {
-		token_in_gitconfig, err := getGitConfig(personalAccessTokenKey)
-		if err != nil {
-			fail("Need to set a personal access token to " + personalAccessTokenKey + " in gitconfig.")
-		}
-		token = token_in_gitconfig
-	}
+// Regular expression to match the GitHub repository
+var reRepo = regexp.MustCompile(`^([^/]+)/([^/]+?)(?:\.git)?$`)
+var reURL = regexp.MustCompile(`^(?:(?:ssh://)?git@github\.com(?::|/)|https://github\.com/)([^/]+)/([^/]+?)(?:\.git)?$`)
 
-	state, err := validState(c.String("state"))
-	if err != nil {
-		fail(err.Error())
-	}
-
-	sort, err := validSort(c.String("sort"))
-	if err != nil {
-		fail(err.Error())
-	}
-
-	return &Options{
-		page:    c.Int("page"),
-		perPage: c.Int("per-page"),
-		filter:  parseFilter(c),
-		state:   state,
-		sort:    sort,
-		token:   token,
-		format:  newFormat(c.String("format")),
-	}
+// NewOptions to generate common options.
+func NewOptions() *Options {
+	return &Options{}
 }
 
-func parseFilter(c *cli.Context) string {
+// Filter issues by you operation.
+func (opt *Options) Filter() string {
 	switch {
-	case c.Bool("assigned"):
+	case opt.assigned:
 		return "assigned"
-	case c.Bool("created"):
+	case opt.created:
 		return "created"
-	case c.Bool("mentioned"):
+	case opt.mentioned:
 		return "mentioned"
 	default:
 		return "all"
 	}
 }
 
-func validState(state string) (valid_state string, err error) {
-	invalid := true
-	for _, s := range [...]string{"open", "closed", "all"} {
-		if state == s {
-			valid_state = state
-			invalid = false
-		}
-	}
-	if invalid {
-		err = newError("Invalid state: " + state)
-	}
-	return
+// Format to generate format object from specify string.
+func (opt *Options) Format() *Format {
+	return NewFormat(opt.format)
 }
 
-func validSort(sort string) (valid_sort string, err error) {
-	invalid := true
-	for _, s := range [...]string{"created", "updated", "comments"} {
-		if sort == s {
-			valid_sort = sort
-			invalid = false
-		}
+// Token to read token from arguments or environments or gitconfig.
+func (opt *Options) Token() string {
+	if len(opt.obtainedToken) > 0 {
+		return opt.obtainedToken
 	}
-	if invalid {
-		err = newError("Invalid sort: " + sort)
+
+	// Token from command line options
+	if len(opt.token) > 0 {
+		opt.obtainedToken = opt.token
+		return opt.token
 	}
-	return
+
+	// Token from environments
+	if token := os.Getenv(tokenEnv); len(token) > 0 {
+		opt.obtainedToken = token
+		return token
+	}
+
+	// Token from .gitconfig
+	if token, err := opt.getGitConfig(tokenConfig); err == nil && len(token) > 0 {
+		opt.obtainedToken = token
+		return token
+	}
+
+	// Returns empty string if personal access token not find.
+	return ""
 }
 
-func getGitConfig(key string) (out string, err error) {
-	cmd := exec.Command("git", "config", key)
-	var result bytes.Buffer
-	cmd.Stdout = &result
+// Validation of input and settings.
+func (opt *Options) Validation() error {
+	if len(opt.Token()) < 1 {
+		return errors.New("Personal access token can not obtain.")
+	}
 
-	err = cmd.Run()
-	out = strings.TrimSpace(result.String())
-	return
+	if opt.invalidState() {
+		return fmt.Errorf("Invalid state: %s", opt.State)
+	}
+
+	if opt.invalidSort() {
+		return fmt.Errorf("Invalid sort: %s", opt.Sort)
+	}
+
+	return nil
+}
+
+func (opt *Options) invalidState() bool {
+	for _, state := range [...]string{"open", "closed", "all"} {
+		if opt.State == state {
+			return false
+		}
+	}
+	return true
+}
+
+func (opt *Options) invalidSort() bool {
+	for _, sort := range [...]string{"created", "updated", "comments"} {
+		if opt.Sort == sort {
+			return false
+		}
+	}
+	return true
+}
+
+func (opt *Options) getOwnerAndRepo() (string, string, error) {
+	if len(opt.repository) > 0 {
+		matches := reRepo.FindStringSubmatch(opt.repository)
+
+		if len(matches) != 3 {
+			return "", "", fmt.Errorf("Failed parse %s", opt.repository)
+		}
+
+		return matches[1], matches[2], nil
+	}
+
+	url, err := opt.getGitConfig("remote.origin.url")
+	if err != nil {
+		return "", "", err
+	}
+
+	matches := reURL.FindStringSubmatch(url)
+	if len(matches) != 3 {
+		return "", "", errors.New("Failed parse remote.origin.url")
+	}
+
+	return matches[1], matches[2], nil
+}
+
+func (opt *Options) getGitConfig(key string) (string, error) {
+	out, err := exec.Command("git", "config", "--get", key).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }

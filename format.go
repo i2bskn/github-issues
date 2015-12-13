@@ -6,16 +6,19 @@ import (
 	"strings"
 )
 
+// Format is display format object.
 type Format struct {
 	base string
 }
 
-func newFormat(base string) *Format {
+// NewFormat to generate dsiplay format.
+func NewFormat(base string) *Format {
 	return &Format{
 		base: strings.Replace(base, "\\t", "\t", -1),
 	}
 }
 
+// Apply format to GitHub issues.
 func (f Format) Apply(issue github.Issue) string {
 	line := f.base
 	items := map[string]string{
