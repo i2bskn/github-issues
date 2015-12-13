@@ -29,6 +29,7 @@ type CLI struct {
 // Run to execute application from arguments.
 func (cli *CLI) Run(args []string) int {
 	var version, help bool
+	var baseFormat string
 	options := NewOptions()
 
 	flags := flag.NewFlagSet(AppName, flag.ContinueOnError)
@@ -58,7 +59,7 @@ func (cli *CLI) Run(args []string) int {
 	flags.StringVar(&options.Sort, "sort", "updated", "")
 
 	// Format
-	flags.StringVar(&options.format, "format", "%n\\t%l\\t%t\\t%u", "")
+	flags.StringVar(&baseFormat, "format", defaultFormat, "")
 
 	// GitHub personal access token
 	flags.StringVar(&options.token, "token", "", "")
@@ -94,9 +95,9 @@ func (cli *CLI) Run(args []string) int {
 		return ExitCodeAPIRequestError
 	}
 
-	format := options.Format()
+	format := NewFormat(baseFormat)
 	for _, issue := range issues {
-		fmt.Println(format.Apply(issue))
+		fmt.Fprintln(cli.outStream, format.Apply(issue))
 	}
 	return ExitCodeOK
 }

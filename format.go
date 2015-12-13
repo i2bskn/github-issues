@@ -1,10 +1,13 @@
 package main
 
 import (
-	"github.com/google/go-github/github"
 	"strconv"
 	"strings"
+
+	"github.com/google/go-github/github"
 )
+
+const defaultFormat = "%n\\t%l\\t%t\\t%u"
 
 // Format is display format object.
 type Format struct {

@@ -27,7 +27,6 @@ type Options struct {
 	created       bool
 	mentioned     bool
 	repository    string
-	format        string
 	token         string
 	obtainedToken string
 }
@@ -53,11 +52,6 @@ func (opt *Options) Filter() string {
 	default:
 		return "all"
 	}
-}
-
-// Format to generate format object from specify string.
-func (opt *Options) Format() *Format {
-	return NewFormat(opt.format)
 }
 
 // Token to read token from arguments or environments or gitconfig.
