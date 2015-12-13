@@ -17,6 +17,7 @@ const (
 	CodeSuccess = 0
 
 	CodeFlagParseFail = 101 + iota
+	CodeInvalidOptions
 	CodeAPIRequestFail
 )
 
@@ -83,6 +84,11 @@ func (cli *CLI) Run(args []string) (int, error) {
 	if *help {
 		flags.Usage()
 		return CodeSuccess, nil
+	}
+
+	// Options validation
+	if err := options.Validation(); err != nil {
+		return CodeInvalidOptions, err
 	}
 
 	issues, _, err := githubIssues(options)
