@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -20,13 +21,20 @@ type Options struct {
 	PerPage       int
 	State         string
 	Sort          string
+	Self          bool
+	CurrentRepo   bool
 	assigned      bool
 	created       bool
 	mentioned     bool
+	repository    string
 	format        string
 	token         string
 	obtainedToken string
 }
+
+// Regular expression to match the GitHub repository
+var reRepo = regexp.MustCompile(`^([^/]+)/([^/]+?)(?:\.git)?$`)
+var reURL = regexp.MustCompile(`^(?:(?:ssh://)?git@github\.com(?::|/)|https://github\.com/)([^/]+)/([^/]+?)(?:\.git)?$`)
 
 // NewOptions to generate common options.
 func NewOptions() *Options {
@@ -71,9 +79,7 @@ func (opt *Options) Token() string {
 	}
 
 	// Token from .gitconfig
-	out, err := exec.Command("git", "config", tokenConfig).Output()
-	if err == nil && len(string(out)) > 0 {
-		token := strings.TrimSpace(string(out))
+	if token, err := opt.getGitConfig(tokenConfig); err == nil && len(token) > 0 {
 		opt.obtainedToken = token
 		return token
 	}
@@ -82,6 +88,7 @@ func (opt *Options) Token() string {
 	return ""
 }
 
+// Validation of input and settings.
 func (opt *Options) Validation() error {
 	if len(opt.Token()) < 1 {
 		return errors.New("Personal access token can not obtain.")
@@ -114,4 +121,36 @@ func (opt *Options) invalidSort() bool {
 		}
 	}
 	return true
+}
+
+func (opt *Options) getOwnerAndRepo() (string, string, error) {
+	if len(opt.repository) > 0 {
+		matches := reRepo.FindStringSubmatch(opt.repository)
+
+		if len(matches) != 3 {
+			return "", "", fmt.Errorf("Failed parse %s", opt.repository)
+		}
+
+		return matches[1], matches[2], nil
+	}
+
+	url, err := opt.getGitConfig("remote.origin.url")
+	if err != nil {
+		return "", "", err
+	}
+
+	matches := reURL.FindStringSubmatch(url)
+	if len(matches) != 3 {
+		return "", "", errors.New("Failed parse remote.origin.url")
+	}
+
+	return matches[1], matches[2], nil
+}
+
+func (opt *Options) getGitConfig(key string) (string, error) {
+	out, err := exec.Command("git", "config", "--get", key).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }

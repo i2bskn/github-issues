@@ -45,6 +45,11 @@ func (cli *CLI) Run(args []string) (int, error) {
 		flags.PrintDefaults()
 	}
 
+	// Repository
+	flags.StringVar(&options.repository, "repo", "", "Specific repository only")
+	flags.BoolVar(&options.CurrentRepo, "current", false, "Current repository only")
+	flags.BoolVar(&options.Self, "self", false, "Your own repositories only")
+
 	// Pagination
 	flags.IntVar(&options.Page, "p", 1, "Specify further pages")
 	flags.IntVar(&options.PerPage, "n", 100, "Specify a custom page size")
@@ -91,7 +96,8 @@ func (cli *CLI) Run(args []string) (int, error) {
 		return CodeInvalidOptions, err
 	}
 
-	issues, _, err := githubIssues(options)
+	githubIssue := NewIssues(options.Token())
+	issues, _, err := githubIssue.ListByOptions(options)
 	if err != nil {
 		return CodeAPIRequestFail, err
 	}
