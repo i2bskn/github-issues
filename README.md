@@ -105,9 +105,3 @@ You can specify the format in `-format`.
 |%u|User|
 
 Default format: `%n\t%l\t%t\t%u`
-
-### Option Specified Example
-
-```
-github-issue -repo -n 5 -a -format "%t"
-```
