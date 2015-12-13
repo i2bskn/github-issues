@@ -45,7 +45,7 @@ GITHUB_TOKEN=<personal access token> github-issues
 #### Command line argument
 
 ```
-github-issues -token <personal access token>
+github-issues -token=<personal access token>
 ```
 
 Usage
@@ -72,16 +72,16 @@ Options
 
 |Option|Type|Default|Description|
 |------|----|-------|-----------|
-|-p|int|1|Specify further pages|
-|-n|int|100|Specify a custom page size|
+|-page|int|1|Specify further pages|
+|-per-page|int|100|Specify a custom page size|
 
 ### Filter
 
 |Option|Type|Default|Description|
 |------|----|-------|-----------|
-|-a|Bool|none|Refine issues assigned to you|
-|-c|Bool|none|Refine issues created by you|
-|-m|Bool|none|Refine issues mentioning you|
+|-assigned|Bool|none|Refine issues assigned to you|
+|-created|Bool|none|Refine issues created by you|
+|-mentioned|Bool|none|Refine issues mentioning you|
 
 ### State
 

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
+	"io"
 )
 
 // Application information
@@ -14,102 +14,118 @@ const (
 
 // Return code of github-issues command
 const (
-	CodeSuccess = 0
+	ExitCodeOK int = 0
 
-	CodeFlagParseFail = 101 + iota
-	CodeInvalidOptions
-	CodeAPIRequestFail
+	ExitCodeFlagParseError = 10 + iota
+	ExitCodeInvalidOptions
+	ExitCodeAPIRequestError
 )
 
-const helpHeader = `Usage: github-issues [OPTIONS]
-
-List of GitHub issues.
-
-Options:
-`
-
 // CLI is application object.
-type CLI struct{}
-
-// NewCLI to generate application object.
-func NewCLI() *CLI {
-	return &CLI{}
+type CLI struct {
+	outStream, errStream io.Writer
 }
 
 // Run to execute application from arguments.
-func (cli *CLI) Run(args []string) (int, error) {
+func (cli *CLI) Run(args []string) int {
+	var version, help bool
 	options := NewOptions()
+
 	flags := flag.NewFlagSet(AppName, flag.ContinueOnError)
+	flags.SetOutput(cli.errStream)
 	flags.Usage = func() {
-		fmt.Println(helpHeader)
-		flags.PrintDefaults()
+		fmt.Fprint(cli.outStream, usage)
 	}
 
 	// Repository
-	flags.StringVar(&options.repository, "repo", "", "Specific repository only")
-	flags.BoolVar(&options.CurrentRepo, "current", false, "Current repository only")
-	flags.BoolVar(&options.Self, "self", false, "Your own repositories only")
+	flags.StringVar(&options.repository, "repo", "", "")
+	flags.BoolVar(&options.CurrentRepo, "current", false, "")
+	flags.BoolVar(&options.Self, "self", false, "")
 
 	// Pagination
-	flags.IntVar(&options.Page, "p", 1, "Specify further pages")
-	flags.IntVar(&options.PerPage, "n", 100, "Specify a custom page size")
+	flags.IntVar(&options.Page, "page", 1, "")
+	flags.IntVar(&options.PerPage, "per-page", 100, "")
 
 	// Refine
-	flags.BoolVar(&options.assigned, "a", false, "Refine issues assigned to you")
-	flags.BoolVar(&options.created, "c", false, "Refine issues created by you")
-	flags.BoolVar(&options.mentioned, "m", false, "Refine issues mentioning you")
+	flags.BoolVar(&options.assigned, "assigned", false, "")
+	flags.BoolVar(&options.created, "created", false, "")
+	flags.BoolVar(&options.mentioned, "mentioned", false, "")
 
 	// State
-	flags.StringVar(&options.State, "state", "open",
-		"Specify the state of the issues to display. Can be either open, closed, all")
+	flags.StringVar(&options.State, "state", "open", "")
 
 	// Sort
-	flags.StringVar(&options.Sort, "sort", "updated",
-		"Specify the sort of the issues to display. Can be either created, updated, comments")
+	flags.StringVar(&options.Sort, "sort", "updated", "")
 
 	// Format
-	flags.StringVar(&options.format, "format", "%n\\t%l\\t%t\\t%u",
-		"Specify the format of the issues to display")
+	flags.StringVar(&options.format, "format", "%n\\t%l\\t%t\\t%u", "")
 
 	// GitHub personal access token
-	flags.StringVar(&options.token, "token", "", "GitHub personal access token")
+	flags.StringVar(&options.token, "token", "", "")
 
-	version := flags.Bool("v", false, "Show version number and quit")
-	help := flags.Bool("h", false, "This help text")
+	flags.BoolVar(&version, "version", false, "")
+	flags.BoolVar(&help, "help", false, "")
 
 	if err := flags.Parse(args[1:]); err != nil {
-		return CodeFlagParseFail, err
+		fmt.Fprintln(cli.errStream, err)
+		return ExitCodeFlagParseError
 	}
 
-	if *version {
-		cli.ShowVersion()
-		return CodeSuccess, nil
+	if version {
+		fmt.Fprintf(cli.errStream, "%s version %s\n", AppName, Version)
+		return ExitCodeOK
 	}
 
-	if *help {
+	if help {
 		flags.Usage()
-		return CodeSuccess, nil
+		return ExitCodeOK
 	}
 
 	// Options validation
 	if err := options.Validation(); err != nil {
-		return CodeInvalidOptions, err
+		fmt.Fprintln(cli.errStream, err)
+		return ExitCodeInvalidOptions
 	}
 
 	githubIssue := NewIssues(options.Token())
 	issues, _, err := githubIssue.ListByOptions(options)
 	if err != nil {
-		return CodeAPIRequestFail, err
+		fmt.Fprintln(cli.errStream, err)
+		return ExitCodeAPIRequestError
 	}
 
 	format := options.Format()
 	for _, issue := range issues {
 		fmt.Println(format.Apply(issue))
 	}
-	return CodeSuccess, nil
+	return ExitCodeOK
 }
 
-// ShowVersion to display the version number.
-func (cli *CLI) ShowVersion() {
-	fmt.Println(strings.Join([]string{AppName, "versin", Version}, " "))
-}
+const usage = `
+Usage: github-issues [OPTIONS]
+
+List of GitHub issues.
+
+Options:
+
+  -current            Current repository only
+  -repo=<owner/repo>  Specific repository only
+  -self               Your own repositories only
+
+  -page               Specify further pages (default: 1)
+  -per-page           Specify a custom page size (default: 100)
+
+  -assigned           Refine issues assigned to you
+  -created            Refine issues created by you
+  -mentioned          Refine issues mentioning you
+
+  -state              Specify the state of the issues to display.
+                      Can be either open, closed, all
+  -sort               Specify the sort of the issues to display.
+                      Can be either created, updated, comments
+  -format             Specify the format of the issues to display
+  -token              GitHub personal access token
+
+  -version            Show version number and quit
+  -help               This help text
+`
